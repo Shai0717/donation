@@ -1,0 +1,486 @@
+using script reflection
+
+import:
+    org.bukkit.Bukkit
+    org.bukkit.inventory.Recipe
+    org.bukkit.inventory.ItemStack
+
+command /donation:run [<number>]:
+	permission: op
+	trigger:
+		if arg-1 is set:
+			run function "df%arg-1%" with arguments player
+
+function df1000(p: player):
+	# 1. 계산 정정: 플레이어 머리 위 11칸 위치를 지정
+	set {_anvil_loc} to block 11 meters above {_p}
+	
+	set {_i} to 1
+		
+	# 2. 플레이어 머리 위(1칸 위)부터 10칸 위까지의 블록을 변수에 백업하고 공기로 바꿉니다.
+	#    {_original_blocks::*} 리스트 변수에 원래 블록 형태를 위치별로 저장합니다.
+	loop blocks between block 1 meter above {_p} and block 11 meters above {_p}:
+		set {_locs::%{_i}%} to location of loop-block
+		set {_types::%{_i}%} to type of loop-block
+		set loop-block to air
+		add 1 to {_i}
+			
+	# 3. 11칸 위에 모루를 생성하여 떨어뜨립니다.
+	set block at {_anvil_loc} to anvil
+		
+	# 4. 모루가 아래로 완전히 떨어질 때까지 잠시 대기합니다. (20 ticks = 1초)
+	#    높이가 더 높아지거나 지연을 주려면 이 시간을 조절하세요.
+	wait 30 ticks
+		
+	# 5. 저장해 두었던 원래 블록 정보로 공간을 다시 복구합니다.
+	loop {_locs::*}:
+		# loop-value는 블록의 '위치'이고, loop-index는 '번호(1, 2, 3...)'입니다.
+		set block at loop-value to {_types::%loop-index%}
+
+function df2000(p: player):
+    # 1과 2 중 무작위 숫자를 뽑아 50% 확률을 만듭니다.
+    set {_choice} to a random integer between 1 and 2
+    
+    if {_choice} is 1:
+       # ==========================================
+        # 액션 1: 인벤토리에서 무작위 한 슬롯만 통째로 떨구기
+        # ==========================================
+        
+        # 0번부터 40번 슬롯(핫바 + 메인 + 방어구 + 왼손) 중 아이템이 들어있는 슬롯을 골라냅니다.
+        loop integers from 0 to 40:
+            if slot loop-value of {_p}'s inventory is not air:
+                # [핵심 추가] 해당 슬롯의 아이템 이름이 "[잠긴 슬롯]" 베리어가 아닐 때만 후보에 넣습니다!
+                if name of slot loop-value of {_p}'s inventory is not "<red>[잠긴 슬롯]":
+                    add loop-value to {_valid_slots::*}
+                
+        # 조건에 맞는 아이템이 하나라도 있는지 확인
+        if size of {_valid_slots::*} > 0:
+            # 후보 슬롯 번호 중 하나를 무작위로 뽑습니다.
+            set {_target_slot} to random element out of {_valid_slots::*}
+            
+            # 선택된 슬롯의 아이템을 가져옵니다.
+            set {_target_item} to slot {_target_slot} of {_p}'s inventory
+            
+            # 해당 아이템을 플레이어 위치에 버리고, 그 슬롯을 공기(빈칸)로 만듭니다.
+            drop {_target_item} at {_p}'s location
+            set slot {_target_slot} of {_p}'s inventory to air
+            
+    else if {_choice} is 2:
+        # ==========================================
+        # 액션 2: 닉네임 돼지 + 불사의 토템 99개 소환 (기존과 동일)
+        # ==========================================
+        
+        spawn a pig at {_p}'s location
+        set {_pig} to last spawned pig
+        
+        set display name of {_pig} to "<light_purple><bold>%name of {_p}% 돼지"
+        set tool of {_pig} to 99 of totem of undying
+
+function df3000(p: player):
+    # 플레이어의 위치에 불이 붙은 TNT(엔티티)를 소환합니다.
+    spawn a primed tnt at {_p}'s location
+    
+    # 방금 소환된 TNT를 변수에 담습니다.
+    set {_tnt} to last spawned primed tnt
+    
+    # (선택 사항) 폭발 시간 조절 - 기본값은 80틱(4초)입니다.
+    # 더 빨리 터지게 하려면 아래 줄의 주석(#)을 지우고 숫자를 줄이세요. (예: 40틱 = 2초)
+    # set fuse time of {_tnt} to 40
+    
+    # (선택 사항) TNT 점화 소리 재생 (더 실감나게)
+    play sound "entity.tnt.primed" with volume 1 and pitch 1 at {_p}'s location
+
+function df5000(p: player):
+    # 1과 2 중 무작위 숫자를 뽑습니다. (각각 50% 확률)
+    set {_chance} to a random integer between 1 and 2
+    
+    if {_chance} is 1:
+        # 1이 나오면 틱레이트 2배 증가 함수 호출
+        doubleTickrate()
+        
+    else if {_chance} is 2:
+        # 2가 나오면 플레이어 발밑 23칸 땅파기 함수 호출
+        # (주의: digDeepHole 함수가 플레이어 입력을 받으므로 {_p}를 넘겨줍니다.)
+        digDeepHole({_p})
+
+variables:
+    # 서버의 기본 틱레이트 초기값 설정 (기본 20)
+    {current_tickrate} = 20
+
+# [함수 정의: 틱레이트 2배 증가]
+function doubleTickrate():
+    # 현재 틱레이트에 2를 곱해 지수 배로 증가시킵니다.
+    set {current_tickrate} to {current_tickrate} * 2
+    
+    # 콘솔을 통해 마인크래프트 자체 tick rate 명령어를 실행합니다.
+    execute console command "tick rate %{current_tickrate}%"
+
+# [함수 정의: 3x3 깊은 구멍 파기]
+function digDeepHole(p: player):
+    # 플레이어의 현재 위치를 기준점으로 잡습니다.
+    set {_base_loc} to location of {_p}
+    
+    # X축(가로 -1 ~ +1), Z축(세로 -1 ~ +1)으로 3x3 영역을 반복합니다.
+    loop integers from -1 to 1:
+        set {_dx} to loop-integer-1
+        
+        loop integers from -1 to 1:
+            set {_dz} to loop-integer-2
+            
+            # Y축(높이)은 플레이어 발밑 1칸 아래부터 23칸 아래까지 내려가며 반복합니다.
+            loop integers from 1 to 23:
+                set {_dy} to loop-integer-3
+                
+                # 기준 위치에서 계산된 오프셋(상대 좌표)을 적용하여 타겟 위치를 구합니다.
+                set {_target_loc} to {_base_loc}
+                add {_dx} to x-coordinate of {_target_loc}
+                subtract {_dy} from y-coordinate of {_target_loc}
+                add {_dz} to z-coordinate of {_target_loc}
+                
+                # 해당 위치의 블록을 완전히 제거(공기로 변경)합니다.
+                set block at {_target_loc} to air
+
+function df10000(p: player):
+    set {_chance} to a random integer between 1 and 2
+    
+    if {_chance} is 1:
+        # ==========================================
+        # 액션 1: 인벤토리 슬롯 베리어로 잠그기
+        # ==========================================
+        loop integers from 0 to 40:
+            if {locked_slots::%uuid of {_p}%::%loop-integer%} is not set:
+                add loop-integer to {_available_slots::*}
+        
+        if size of {_available_slots::*} > 0:
+            set {_target_slot} to random element out of {_available_slots::*}
+            
+            # 1. 잠길 슬롯에 아이템이 있다면 억울하지 않게 바닥에 떨어뜨려 줍니다.
+            if slot {_target_slot} of {_p}'s inventory is not air:
+                drop slot {_target_slot} of {_p}'s inventory at {_p}'s location
+                
+            # 2. 해당 슬롯에 이름이 붙은 베리어를 박아넣습니다.
+            set slot {_target_slot} of {_p}'s inventory to barrier named "<red>[잠긴 슬롯]"
+            
+            # 3. 변수에 잠금 상태를 저장합니다.
+            set {locked_slots::%uuid of {_p}%::%{_target_slot}%} to true
+            
+            
+    else if {_chance} is 2:
+        # ==========================================
+        # 액션 2: 인벤토리에서 무작위 한 슬롯 지우기 (기존과 동일)
+        # ==========================================
+        loop integers from 0 to 40:
+            # 주의: 베리어로 잠긴 슬롯은 지워지는 대상에서 제외합니다.
+            if slot loop-integer of {_p}'s inventory is not air:
+                if name of slot loop-integer of {_p}'s inventory is not "<red>[잠긴 슬롯]":
+                    add loop-integer to {_occupied_slots::*}
+        
+        if size of {_occupied_slots::*} > 0:
+            set {_target_slot} to random element out of {_occupied_slots::*}
+            set {_deleted_item} to slot {_target_slot} of {_p}'s inventory
+            set slot {_target_slot} of {_p}'s inventory to air
+
+
+# ==========================================
+# [철통 보안] 예외 상황 방지 이벤트
+# ==========================================
+
+# 1. 클릭 및 드래그 방지
+on inventory click:
+    if {locked_slots::%uuid of player%::%index of clicked slot%} is true:
+        cancel event
+
+# 2. Q(버리기 키)로 베리어를 버리는 것 방지
+on drop:
+    if name of event-item is "<red>[잠긴 슬롯]":
+        cancel event
+
+# 3. 플레이어 사망 시 베리어가 아이템으로 드랍되는 것 방지
+on death of player:
+    loop drops:
+        if name of loop-value is "<red>[잠긴 슬롯]":
+            remove loop-value from drops
+
+# 4. 부활 시 잠긴 슬롯에 베리어 다시 복구
+on respawn:
+    wait 1 tick # 인벤토리가 초기화될 시간을 1틱 벌어줍니다.
+    loop integers from 0 to 40:
+        if {locked_slots::%uuid of player%::%loop-integer%} is true:
+            set slot loop-integer of player's inventory to barrier named "<red>[잠긴 슬롯]"
+
+
+# ==========================================
+# [관리자 전용] 물리 잠금 해제 명령어
+# ==========================================
+command /슬롯잠금해제 [<player>]:
+    permission: op
+    trigger:
+        set {_target} to player
+        if arg 1 is set:
+            set {_target} to arg 1
+            
+        # 1. 변수를 확인하여 인벤토리에 박힌 베리어를 강제로 뽑아냅니다(공기로 변경).
+        loop integers from 0 to 40:
+            if {locked_slots::%uuid of {_target}%::%loop-integer%} is true:
+                set slot loop-integer of {_target}'s inventory to air
+                
+        # 2. 잠금 변수 초기화
+        delete {locked_slots::%uuid of {_target}%::*}
+
+# ==========================================
+# [함수] 2/3 삭제, 1/3 복원 함수
+# ==========================================
+function df12000(p: player):
+    set {_chance} to a random integer between 1 and 3
+    
+    # --------------------------------------------------
+    # [2/3 확률] 레시피 하나 무작위 삭제
+    # --------------------------------------------------
+    if {_chance} is 1 or 2:
+        # [핵심 수정] class "" 구문을 사용하여 import 없이 안전하게 Bukkit 클래스를 로드합니다.
+        set {_bukkit_class} to class "org.bukkit.Bukkit"
+        set {_iterator} to {_bukkit_class}.recipeIterator()
+        
+        while {_iterator}.hasNext() is true:
+            set {_recipe} to {_iterator}.next()
+            set {_result_item} to {_recipe}.getResult()
+            
+            if {_result_item} is set:
+                # 결과물 아이템의 Material 이름을 소문자 문자열로 안전하게 변환합니다. (예: "diamond_sword")
+                set {_item_id} to {_result_item}.getType().toString().toLowerCase()
+                
+                if {_item_id} is not "air":
+                    # 이미 지워진 목록에 없고, 임시 후보 리스트에도 중복되지 않은 아이템만 수집
+                    if {deleted_recipes::%uuid of {_p}%::*} does not contain {_item_id}:
+                        if {_available_items::*} does not contain {_item_id}:
+                            add {_item_id} to {_available_items::*}
+                            
+        # 지울 수 있는 조합법 아이템이 후보에 존재한다면
+        if size of {_available_items::*} > 0:
+            set {_target_item} to random element out of {_available_items::*}
+            
+            # 1. 차단 목록 변수에 '문자열'로 저장
+            add {_target_item} to {deleted_recipes::%uuid of {_p}%::*}
+            
+            # 2. 마인크래프트 순정 명령어로 레시피 북에서 제거
+            execute console command "recipe take %{_p}% minecraft:%{_target_item}%"
+            
+            # 메시지 출력 시 가독성을 위해 언더바(_)를 공백으로 치환합니다.
+            set {_display_name} to {_target_item}
+            replace all "_" with " " in {_display_name}
+            send "<yellow>%{_display_name}%<red> 조합법이 삭제되었습니다!" to {_p}
+        else:
+            send "<red>더 이상 지울 조합법이 없습니다!" to {_p}
+
+    # --------------------------------------------------
+    # [1/3 확률] 지워진 레시피 하나 복원
+    # --------------------------------------------------
+    else if {_chance} is 3:
+        if size of {deleted_recipes::%uuid of {_p}%::*} > 0:
+            set {_restore_item} to random element out of {deleted_recipes::%uuid of {_p}%::*}
+            
+            # 1. 차단 목록 변수에서 제거
+            remove {_restore_item} from {deleted_recipes::%uuid of {_p}%::*}
+            
+            # 2. 마인크래프트 순정 명령어로 레시피 북에 다시 지급
+            execute console command "recipe give %{_p}% minecraft:%{_restore_item}%"
+            
+            set {_display_name} to {_restore_item}
+            replace all "_" with " " in {_display_name}
+            send "<yellow>%{_display_name}%<green> 조합법이 복원되었습니다!" to {_p}
+        else:
+            send "<green>지워진 조합법이 없어 아무 일도 일어나지 않았습니다." to {_p}
+
+
+# ==========================================
+# [철통 보안] 문자열 기반 조합 원천 차단 (기존과 동일)
+# ==========================================
+on craft:
+	if {donation::craft} is true:
+		cancel event
+		stop
+
+	set {_crafted_item} to "%type of event-item%"
+	replace all " " with "_" in {_crafted_item}
+    
+	if {deleted_recipes::%uuid of player%::*} contains {_crafted_item}:
+		cancel event
+
+# ==========================================
+# [함수] 모든 드래곤 최대 체력 5% 증가 및 회복
+# ==========================================
+function df20000(p: player):
+    set {_buffed_count} to 0
+    set {_dragon_class} to class "org.bukkit.entity.EnderDragon"
+    
+    # 1. 자바를 거치지 않고 Skript 순정 기능으로 모든 월드를 안전하게 탐색합니다.
+    loop all worlds:
+        set {_world} to loop-world
+        
+        # 2. 언로드 문제 해결: 엔드 월드일 경우 0,0 청크를 강제로 깨웁니다.
+        if "%{_world}.getEnvironment()%" is "THE_END":
+            {_world}.loadChunk(0, 0)
+            
+        # 3. 드래곤 감지 100% 보장: 자바 메서드로 '드래곤 본체'만 가져옵니다.
+        set {_dragons::*} to {_world}.getEntitiesByClass({_dragon_class})
+        
+        # 4. API 에러 방지: 체력 조작은 버전 충돌이 없는 Skript 내장 구문을 사용합니다.
+        loop {_dragons::*}:
+            set {_dragon} to loop-value-2
+            
+            # 현재 최대 체력의 5% 계산
+            set {_max} to max health of {_dragon}
+            set {_buff} to {_max} * 0.05
+            set {_new_max} to {_max} + {_buff}
+            
+            # Skript 내장 구문으로 최대 체력 적용 (Attribute 에러 완벽 회피)
+            set max health of {_dragon} to {_new_max}
+            
+            # 현재 체력을 증가량만큼 회복 (최대치 초과 방지)
+            set {_current} to health of {_dragon}
+            set {_new_health} to {_current} + {_buff}
+            
+            if {_new_health} > {_new_max}:
+                set {_new_health} to {_new_max}
+                
+            set health of {_dragon} to {_new_health}
+            
+            add 1 to {_buffed_count}
+                    
+    # 3. 드래곤이 버프되었을 때 서버 전체에 시각/청각 효과와 메시지를 뿌립니다.
+    if {_buffed_count} > 0:
+        # 모든 플레이어에게 드래곤 포효 소리를 재생합니다.
+        loop all players:
+            play sound "entity.ender_dragon.growl" with volume 1 and pitch 0.8 at loop-player
+    else:
+        # 콘솔이나 관리자에게 드래곤이 없음을 알립니다.
+        send "<red>현재 서버에 소환된 엔더 드래곤이 없습니다." to console
+
+# ==========================================
+# [함수] 플레이어에게 15분간 어둠(Darkness) 효과 부여
+# ==========================================
+function df30000(p: player):
+    # 플레이어에게 어둠 효과를 15분(15 minutes) 동안 적용합니다.
+    apply darkness to {_p} for 15 minutes
+
+# ==========================================
+# [함수] 서버 틱레이트 및 변수를 기본값(20)으로 초기화
+# ==========================================
+function df50000(p: player):
+    # 1. 마인크래프트 순정 명령어 시스템을 통해 틱레이트를 20으로 고정
+    execute console command "tick rate 20"
+    
+    # 2. [핵심] 틱레이트를 연산/추적하던 전역 변수도 기본값인 20으로 초기화!
+    # (주의: 이 변수명은 증가 함수에서 쓰신 변수명과 똑같이 맞춰주세요)
+    set {server_tickrate} to 20
+
+# ==========================================
+# [함수] 엔드 월드에 엔더 드래곤 1마리 추가 소환
+# ==========================================
+function df100000(p: player):
+    set {_spawned} to false
+    
+    # 서버의 모든 월드를 탐색합니다.
+    loop all worlds:
+        set {_world_name} to "%loop-world%"
+        
+        # 월드 이름에 "the_end"가 포함된 곳을 엔드 월드로 간주합니다. (예: world_the_end)
+        if {_world_name} contains "the_end":
+            
+            # 엔드 월드의 중앙 좌표(X:0, Y:100, Z:0)를 설정합니다.
+            set {_spawn_loc} to location at 0, 100, 0 in loop-world
+            
+            # 지정된 위치에 엔더 드래곤을 소환합니다. 
+            # (명령어로 스폰할 때 해당 청크는 마인크래프트 시스템이 알아서 잠시 로드합니다)
+            spawn 1 ender dragon at {_spawn_loc}
+
+			# 2. 방금 소환된 드래곤을 변수에 담아냅니다.
+            set {_dragon} to last spawned entity
+
+			# 3. [핵심 해결] 마인크래프트 순정 NBT 제어 명령어로 드래곤의 AI를 '활공(Phase:0)' 상태로 강제 전환합니다.
+            execute console command "data merge entity %uuid of {_dragon}% {DragonPhase:0}"
+            
+            set {_spawned} to true
+            stop loop # 소환을 마쳤으므로 루프를 종료합니다.
+            
+    # 소환 성공 여부에 따른 결과 처리
+    if {_spawned} is true:
+        # 모든 플레이어에게 공포스러운 드래곤 포효 소리 재생
+        loop all players:
+            play sound "entity.ender_dragon.ambient" with volume 1 and pitch 0.8 at loop-player
+    else:
+        # 끝내 이름을 찾지 못한 경우의 디버그 출력
+        send "&c[디버그] 이름에 'the_end'가 포함된 월드를 찾지 못했습니다." to console
+
+function df150000(p: player):
+	execute console command "effect give %{_p}% minecraft:mining_fatigue infinite 0 true"
+
+function df200000(p: player):
+	spawn 1 wither at {_p}'s location
+
+	loop all players:
+		play sound "entity.wither.spawn" with volume 1 and pitch 1.0 at loop-player
+
+# ==========================================
+# [함수] 베리어(잠긴 슬롯)를 제외한 모든 인벤토리 비우기
+# ==========================================
+function df250000(p: player):
+    # 서버에 접속해 있는 모든 플레이어를 탐색합니다.
+    loop all players:
+        set {_p} to loop-player
+        
+        # 0번(단축바)부터 40번(왼손)까지의 모든 슬롯을 하나하나 검사합니다.
+        loop integers from 0 to 40:
+            set {_item} to slot loop-integer of {_p}'s inventory
+            
+            # 슬롯이 비어있지 않을 때만 검사를 진행합니다.
+            if {_item} is not air:
+                
+                # ----------------------------------------------------
+                # [핵심] 해당 아이템의 이름이 베리어 잠금 이름과 '다를 경우'에만 삭제합니다.
+                # ----------------------------------------------------
+                if name of {_item} is not "<red>[잠긴 슬롯]":
+                    set slot loop-integer of {_p}'s inventory to air
+                    
+        # [디테일] 유저가 마우스 포인터로 아이템을 집어 들고 있는(드래그 중인) 상태라면, 
+        # 그 아이템도 인벤토리 창을 닫게 만들어 바닥에 떨어뜨린 뒤 스크립트가 처리하도록 유도합니다.
+        close {_p}'s inventory
+                    
+        # 아이템이 부서지는 듯한 절망적인 효과음을 재생합니다.
+        play sound "entity.item.break" with volume 1 and pitch 0.5 at {_p}
+        
+function df300000(p: player):
+	execute console command "effect give %{_p}% minecraft:weakness infinite 2 true"
+
+function df400000(p: player, i: text, i2: text):
+	set {_reason} to uncolored "%{_i}%%nl%%{_i2}%"
+
+	kick {_p} due to {_reason}
+
+function df500000(p: player):
+    # 1. 어둠(Darkness) 효과 제거
+    execute console command "effect clear %{_p}% minecraft:darkness"
+    
+    # 2. 채굴 피로(Mining Fatigue) 효과 제거
+    execute console command "effect clear %{_p}% minecraft:mining_fatigue"
+    
+    # 3. 나약함(Weakness) 효과 제거
+    execute console command "effect clear %{_p}% minecraft:weakness"
+
+function df1000000(p: player):
+    # 서버에 접속해 있는 모든 플레이어를 탐색합니다.
+    loop all players:
+        set {_p} to loop-player
+        
+        # 1. Skript 문법으로 최대 체력을 1(하트 반 칸)로 변경합니다.
+        set max health of {_p} to 1
+        
+        # 2. 변경된 최대 체력에 맞게 현재 체력도 즉시 1로 동기화합니다.
+        set health of {_p} to 1
+
+function df2500000(p: player):
+	set {donation::craft} to true
+
+	loop all players:
+		play sound "entity.item.break" with volume 1 and pitch 0.5 at loop-player
+

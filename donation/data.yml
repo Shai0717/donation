@@ -1,0 +1,84 @@
+'1000':
+    function: 1000
+    lore: <red><bold>머리 위에 낙하하는 모루
+
+'2000':
+    function: 2000
+    lore: <aqua><bold>아이템 하나 떨구기</aqua> or <gold><bold>무적 돼지 소환
+
+'3000':
+    function: 3000
+    lore: <dark_red><shadow:gray><bold>폭탄
+
+'5000':
+    function: 5000
+    lore: <green><bold>게임 속도 2배(중첩)</green> or <red><bold>낙사 지뢰
+
+'10000':
+    function: 10000
+    lore: <red><bold>인벤토리 1칸 Lock</red> or <red><bold>인벤토리에서 아이템 하나 삭제
+
+'12000':
+    function: 12000
+    lore: <red><bold>레시피 1개 삭제(67%)</red> or <green><bold>레시피 1개 복구(33%)
+
+'20000':
+    function: 20000
+    lore: <light_purple><bold>드래곤은 죽지 않아요!! 최대 체력 5% 증가(회복)
+
+'30000':
+    function: 30000
+    lore: <rainbow><bold>The Deep Dark
+
+'50000':
+    function: 50000
+    lore: <green><bold>틱레이트 리셋(20 Ticks)
+
+'100000':
+    function: 100000
+    lore: <dark_purple><shadow:white:0.75><bold>여기 드래곤 한 마리 추가요!!
+
+'150000':
+    function: 150000
+    lore: <yellow>채굴 속도가 (영구적으로) <bold>느려~
+
+'200000':
+    function: 200000
+    lore: <dark_gray><shadow:white:0.75><bold>어느날 우리 차원에 재앙이 들어왔다(위더 소환)
+
+'250000':
+    function: 250000
+    lore: <dark_red><bold>인벤토리는 사라져야해
+
+'300000':
+    function: 300000
+    lore: <gray><bold>무장 해제!!
+
+'400000':
+    function: 400000
+    lore: <aqua><bold>너에겐 잠시 휴식이 필요해 보여(Kick)
+
+'500000':
+    function: 500000
+    lore: <green><bold>너는 이제 자유야!!(후원 디버프 제거)
+
+'1000000':
+    function: 1000000
+    lore: <dark_red><bold>돌연사 주의(모든 플레이어 체력 1)
+
+'2500000':
+    function: 2500000
+    lore: <dark_red><bold>금단의 지식을 얻으려는자, 시련을 견뎌라
+
+'5000000':
+    function: 5000000
+    lore: <dark_purple><bold>Hello Wolrd!.. 3... 2... 1... /Reset.(진행사항 리셋 및 서버 초기화 후 재시작)
+
+'10000000':
+    lore: <dark_green><bold>Vist Japen Web(방종 확정, 지인(스트리머 포함)과 일본여행 약속 보장)
+
+'50000000':
+    lore: <gold><bold>스머 미국 보내자(방종 확정, 지인(스트리머 포함)과 미국여행 약속 보장)
+
+'100000000':
+    lore: <blue><bold>The Earth(방종 확정, 지인(스트리머 포함)과 세계일주 여행 약속 보장)

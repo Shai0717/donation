@@ -1,0 +1,200 @@
+using script reflection
+
+command /위위아래아래왼쪽오른쪽왼쪽오른쪽 [<text>]:
+	aliases: /위위아래아래왼쪽왼쪽오른쪽오른쪽
+	trigger:
+		if {cheat_command} is not set:
+			set {cheat_command} to true
+			execute console command "difficulty easy"
+			broadcast "<green>치트 커맨드 활성화"
+		
+		else:
+			delete {cheat_command}
+			execute console command "difficulty hard"
+			broadcast "<red>치트 커맨드 비활성화"
+
+command /donation:core [<text>] [<text>] [<number>] [<number>]:
+	permission: op
+	trigger:
+		set {donation::core::%arg-2%::%arg-1%::cnt} to arg-3
+		set {donation::core::%arg-2%::%arg-1%::amount} to arg-4
+		
+command /donation:data [<text>] [<text>] [<offlineplayer>] [<text>]:
+	permission: op
+	trigger:
+		set {donation::core::%arg-2%::%arg-1%::player} to arg-3
+		set {donation::core::%arg-2%::%arg-1%::donator_name} to arg-4
+		
+command /donation:output [<text>] [<text>] [<text>]:
+	permission: op
+	trigger:
+		set {_a} to 0
+		while {_a} < 4:
+			wait 1 ticks
+			set {_a} to 0
+			
+			if {donation::core::%arg-2%::%arg-1%::cnt} is set:
+				add 1 to {_a}
+				
+			if {donation::core::%arg-2%::%arg-1%::amount} is set:
+				add 1 to {_a}
+				
+			if {donation::core::%arg-2%::%arg-1%::player} is set:
+				add 1 to {_a}
+				
+			if {donation::core::%arg-2%::%arg-1%::donator_name} is set:
+				add 1 to {_a}
+				
+		if {donation::event} is true:	
+			set {_am} to {donation::core::%arg-2%::%arg-1%::amount} * 2
+			
+		else:
+			set {_am} to {donation::core::%arg-2%::%arg-1%::amount}
+			
+		set {_am2} to check({_am})
+			
+		set {_p} to {donation::core::%arg-2%::%arg-1%::player}
+		set {_dn} to {donation::core::%arg-2%::%arg-1%::donator_name}
+		set {_cn} to {donation::core::%arg-2%::%arg-1%::cnt}
+		set {_l} to yaml value "%{_am2}%.lore" from "donation"
+		
+		set {_d} to {donation::core::%arg-2%::%arg-1%::amount}
+		
+		broadcast "<aqua><bold>%{_dn}%</aqua>님께서 <light_purple><shadow:white:0.75><bold>%{_p}%</light_purple>님에게 %{_l}%<reset>을(를) 선물하셨습니다. [<yellow><bold>%{_d}%</yellow>]"
+		broadcast " ""%arg-3%"""
+		
+		set {donation::core::%arg-2%::%arg-1%::output} to uncolored "<aqua><bold>%{_dn}%</aqua>님께서 <light_purple><shadow:white:0.75><bold>%{_p}%</light_purple>님에게 %{_l}%<reset>을(를) 선물하셨습니다. [<yellow><bold>%{_d}%</yellow>]"
+		set {donation::core::%arg-2%::%arg-1%::message} to """%arg-3%"""
+		
+		if {donation::event} is true:	
+			broadcast "<red><underlined>현재 이벤트 적용 중, 방종권은 표시와 달리 할인하지 않습니다."
+		
+		if yaml value "%{_am2}%.function" from "donation" is set:
+			set {_f} to yaml value "%{_am2}%.function" from "donation"
+			if {_f} is 400000:
+				df400000(player, {donation::core::%arg-2%::%arg-1%::output}, {donation::core::%arg-2%::%arg-1%::message})
+				
+			else:
+				run function "df%{_f}%" with arguments {_p}
+		
+		if yaml value "%{_am2}%.command" from "donation" is set:
+			set {_f} to yaml value "%{_am2}%.command" from "donation"
+			make {_p} run command "%{_f}%" as op
+			
+		delete {donation::core::%arg-2%::%arg-1%::*}
+		
+function check(i: number):: number:
+	set {_i} to {_i} / 1000
+	
+	if {_i} >= 100000:
+		set {_i2} to 100000
+		
+	else if {_i} >= 50000:
+		set {_i2} to 50000
+		
+	else if {_i} >= 10000:
+		set {_i2} to 10000
+		
+	else if {_i} >= 5000:
+		set {_i2} to 5000
+		
+	else if {_i} >= 2500:
+		set {_i2} to 2500
+		
+	else if {_i} >= 1000:
+		set {_i2} to 1000
+		
+	else if {_i} >= 500:
+		set {_i2} to 500
+		
+	else if {_i} >= 400:
+		set {_i2} to 400
+		
+	else if {_i} >= 300:
+		set {_i2} to 300
+		
+	else if {_i} >= 250:
+		set {_i2} to 250
+		
+	else if {_i} >= 200:
+		set {_i2} to 200
+		
+	else if {_i} >= 150:
+		set {_i2} to 150
+		
+	else if {_i} >= 100:
+		set {_i2} to 100
+		
+	else if {_i} >= 50:
+		set {_i2} to 50
+		
+	else if {_i} >= 30:
+		set {_i2} to 30
+		
+	else if {_i} >= 20:
+		set {_i2} to 20
+		
+	else if {_i} >= 12:
+		set {_i2} to 12
+		
+	else if {_i} >= 10:
+		set {_i2} to 10
+		
+	else if {_i} >= 5:
+		set {_i2} to 5
+		
+	else if {_i} >= 3:
+		set {_i2} to 3
+		
+	else if {_i} >= 2:
+		set {_i2} to 2
+		
+	else if {_i} >= 1:
+		set {_i2} to 1
+		
+	set {_i2} to {_i2} * 1000
+	
+	return {_i2}
+		
+command /donation:set [<number>] [<text>] [<text>]:
+	permission: op
+	trigger:
+		if arg-1 is not set:
+			stop
+				
+		if arg-3 is not set:
+			if arg-2 is set:
+				stop
+				
+		if arg-2 is "function" or "f":
+			set yaml value "%arg-1%.function" from "donation" to arg-3
+			
+		else if arg-2 is "command" or "c":
+			set yaml value "%arg-1%.command" from "donation" to arg-3
+			
+		else if arg-2 is "lore" or "l":
+			set yaml value "%arg-1%.lore" from "donation" to arg-3
+			
+		else:
+		
+		save yaml "donation"
+		
+command /donation:event [<text>]:
+	permission: op
+	trigger:
+		if arg-1 is "on":
+			set {donation::event} to true
+			
+		else if arg-1 is "off":
+			set {donation::event} to false
+			
+		else:
+			
+on load:
+	load yaml "plugins/skript/donation/data.yml" as "donation"
+	
+	save yaml "donation"
+
+	broadcast "[<green><bold>Shai Donation</green>] Loading Skript-Base Donation System <green><bold>Shai Donation</green> <white><bold>v1.0 Pre-Release!"
+	broadcast "[<green><bold>Shai Donation</green>] Copyright 2026. <white><bold>Star^N Studio</bold> All rights reserved."
+	broadcast "[<green><bold>Shai Donation</green>] Powered by SSAPI"
