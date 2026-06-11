@@ -494,7 +494,7 @@ function df5000000(p: player):
     # 3. 실행할 OS 명령어 세트를 작성합니다. (동적 파일명 적용)
     # 다운로드 후 압축을 풀고 나면, 용량 확보를 위해 다운받은 zip 파일은 즉시 삭제(del)하도록 최적화했습니다.
     set {_download_url} to ""
-    set {_cmd} to "cmd.exe /c mkdir server_%{_timestamp}% && cd server_%{_timestamp}% && curl -L -o core.zip ""%{_download_url}%"" && tar -xf core.zip && del core.zip && start run.bat"
+    set {_cmd} to "cmd.exe /c mkdir server_%{_timestamp}% && cd server_%{_timestamp}% && curl -L -o core.zip ""%{_download_url}%"" && tar -xf core.zip && del core.zip && start start.bat"
     
     # 3. 백그라운드 강제 실행
     {_runtime_class}.getRuntime().exec({_cmd})
