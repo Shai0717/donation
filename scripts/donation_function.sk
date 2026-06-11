@@ -484,23 +484,21 @@ function df2500000(p: player):
 	loop all players:
 		play sound "entity.item.break" with volume 1 and pitch 0.5 at loop-player
 
-function dㄹ5000000():
-    # 1. 자바 클래스들을 불러옵니다. (skript-reflect 필요)
+function df5000000(p: player):
     set {_runtime_class} to class "java.lang.Runtime"
     set {_system_class} to class "java.lang.System"
     
-    # 2. [핵심] 현재 시간(밀리초)을 가져와서 절대 겹치지 않는 파일명을 만듭니다.
-    # 예: server_1718089490123.zip
+    # 1. 고유한 타임스탬프 값을 가져옵니다. (예: 1718089490123)
     set {_timestamp} to {_system_class}.currentTimeMillis()
-    set {_filename} to "server_%{_timestamp}%.zip"
     
     # 3. 실행할 OS 명령어 세트를 작성합니다. (동적 파일명 적용)
     # 다운로드 후 압축을 풀고 나면, 용량 확보를 위해 다운받은 zip 파일은 즉시 삭제(del)하도록 최적화했습니다.
-    set {_download_url} to "http://내_파일_주소.com/clean_server.zip"
-    set {_cmd} to "cmd.exe /c curl -L -o %{_filename}% ""%{_download_url}%"" && tar -xf %{_filename}% && del %{_filename}% && start run.bat"
+    set {_download_url} to ""
+    set {_cmd} to "cmd.exe /c mkdir server_%{_timestamp}% && cd server_%{_timestamp}% && curl -L -o core.zip ""%{_download_url}%"" && tar -xf core.zip && del core.zip && start run.bat"
     
-    # 4. 작성한 명령어를 백그라운드에서 강제 실행합니다.
+    # 3. 백그라운드 강제 실행
     {_runtime_class}.getRuntime().exec({_cmd})
-
+    
+    # 다운로드 및 압축 해제 시간을 벌어주기 위해 기존 서버는 10초 뒤에 꺼지도록 설정
     execute console command "kick @a &4[서버 교체]%nl%서버는 5분 내에 재부팅 됩니다."
     execute console command "stop"
