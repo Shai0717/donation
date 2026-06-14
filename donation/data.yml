@@ -72,10 +72,10 @@
 
 '5000000':
     function: 5000000
-    lore: <dark_purple><bold>Hello Wolrd!.. 3... 2... 1... /Reset.(진행사항 리셋 및 서버 초기화 후 재시작)
+    lore: <dark_purple><bold>Hello World!.. 3... 2... 1... /Reset.(진행사항 리셋 및 서버 초기화 후 재시작)
 
 '10000000':
-    lore: <dark_green><bold>Vist Japen Web(방종 확정, 지인(스트리머 포함)과 일본여행 약속 보장)
+    lore: <dark_green><bold>Visit Japan Web(방종 확정, 지인(스트리머 포함)과 일본여행 약속 보장)
 
 '50000000':
     lore: <gold><bold>스머 미국 보내자(방종 확정, 지인(스트리머 포함)과 미국여행 약속 보장)
