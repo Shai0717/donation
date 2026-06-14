@@ -45,8 +45,11 @@ command /donation:output [<text>] [<text>] [<text>]:
 			if {donation::core::%arg-2%::%arg-1%::donator_name} is set:
 				add 1 to {_a}
 				
-		if {donation::event} is true:	
+		if {donation::event} is true:
 			set {_am} to {donation::core::%arg-2%::%arg-1%::amount} * 2
+			
+		else if {donation::event} is "x4":
+			set {_am} to {donation::core::%arg-2%::%arg-1%::amount} * 4
 			
 		else:
 			set {_am} to {donation::core::%arg-2%::%arg-1%::amount}
@@ -67,12 +70,16 @@ command /donation:output [<text>] [<text>] [<text>]:
 		set {donation::core::%arg-2%::%arg-1%::message} to """%arg-3%"""
 		
 		if {donation::event} is true:	
-			broadcast "<red><underlined>현재 이벤트 적용 중, 방종권은 표시와 달리 할인하지 않습니다."
+			broadcast "<red><underlined>현재 2배 할인 이벤트 적용 중, 방종권은 표시와 달리 할인하지 않습니다."
+			
+		else if {donation::event} is "x4":	
+			broadcast "<light_purple><bold>Honkai: Star Rail Silver Wolf LV.999 Mods Activation"
+			broadcast "<red><underlined><bold>[경고]</bold> 현재 4배 할인 이벤트 적용 중, 일부 이벤트 가속 중, 방종권은 표시와 달리 할인하지 않습니다."
 		
 		if yaml value "%{_am2}%.function" from "donation" is set:
 			set {_f} to yaml value "%{_am2}%.function" from "donation"
 			if {_f} is 400000:
-				df400000(player, {donation::core::%arg-2%::%arg-1%::output}, {donation::core::%arg-2%::%arg-1%::message})
+				df400000({_p}, {donation::core::%arg-2%::%arg-1%::output}, {donation::core::%arg-2%::%arg-1%::message})
 				
 			else:
 				run function "df%{_f}%" with arguments {_p}
@@ -82,6 +89,11 @@ command /donation:output [<text>] [<text>] [<text>]:
 			make {_p} run command "%{_f}%" as op
 			
 		delete {donation::core::%arg-2%::%arg-1%::*}
+		
+command /donation:test [<text>]:
+	permission: op
+	trigger:
+		broadcast "%arg-1%"
 		
 function check(i: number):: number:
 	set {_i} to {_i} / 1000
@@ -174,8 +186,6 @@ command /donation:set [<number>] [<text>] [<text>]:
 			
 		else if arg-2 is "lore" or "l":
 			set yaml value "%arg-1%.lore" from "donation" to arg-3
-			
-		else:
 		
 		save yaml "donation"
 		
@@ -187,6 +197,9 @@ command /donation:event [<text>]:
 			
 		else if arg-1 is "off":
 			set {donation::event} to false
+			
+		if arg-1 is "x4":
+			set {donation::event} to "x4"
 			
 		else:
 			
