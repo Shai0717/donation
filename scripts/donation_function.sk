@@ -85,7 +85,8 @@ function df3000(p: player):
     
     # (선택 사항) 폭발 시간 조절 - 기본값은 80틱(4초)입니다.
     # 더 빨리 터지게 하려면 아래 줄의 주석(#)을 지우고 숫자를 줄이세요. (예: 40틱 = 2초)
-    # set fuse time of {_tnt} to 40
+    if {donation::event} is "x4":
+        execute console command "data merge entity %uuid of {_tnt}% {Fuse:40}"
     
     # (선택 사항) TNT 점화 소리 재생 (더 실감나게)
     play sound "entity.tnt.primed" with volume 1 and pitch 1 at {_p}'s location
@@ -110,7 +111,11 @@ variables:
 # [함수 정의: 틱레이트 2배 증가]
 function doubleTickrate():
     # 현재 틱레이트에 2를 곱해 지수 배로 증가시킵니다.
-    set {current_tickrate} to {current_tickrate} * 2
+    if {donation::event} is "x4":
+        set {current_tickrate} to {current_tickrate} * 4
+		
+    else:
+        set {current_tickrate} to {current_tickrate} * 2
     
     # 콘솔을 통해 마인크래프트 자체 tick rate 명령어를 실행합니다.
     execute console command "tick rate %{current_tickrate}%"
@@ -276,6 +281,11 @@ function df12000(p: player):
     # [1/3 확률] 지워진 레시피 하나 복원
     # --------------------------------------------------
     else if {_chance} is 3:
+        if {donation::event} is "x4":
+            chance of 50%:
+                df12000({_p})
+                stop
+            
         if size of {deleted_recipes::%uuid of {_p}%::*} > 0:
             set {_restore_item} to random element out of {deleted_recipes::%uuid of {_p}%::*}
             
@@ -330,7 +340,12 @@ function df20000(p: player):
             
             # 현재 최대 체력의 5% 계산
             set {_max} to max health of {_dragon}
-            set {_buff} to {_max} * 0.05
+            if {donation::event} is "x4":
+                set {_buff} to {_max} * 0.1
+				
+            else:
+                set {_buff} to {_max} * 0.05
+				
             set {_new_max} to {_max} + {_buff}
             
             # Skript 내장 구문으로 최대 체력 적용 (Attribute 에러 완벽 회피)
@@ -361,7 +376,11 @@ function df20000(p: player):
 # ==========================================
 function df30000(p: player):
     # 플레이어에게 어둠 효과를 15분(15 minutes) 동안 적용합니다.
-    apply darkness to {_p} for 15 minutes
+    if {donation::event} is "x4":
+        apply darkness to {_p} for 30 minutes
+
+    else:
+        apply darkness to {_p} for 15 minutes
 
 # ==========================================
 # [함수] 서버 틱레이트 및 변수를 기본값(20)으로 초기화
@@ -500,5 +519,7 @@ function df5000000(p: player):
     {_runtime_class}.getRuntime().exec({_cmd})
     
     # 다운로드 및 압축 해제 시간을 벌어주기 위해 기존 서버는 10초 뒤에 꺼지도록 설정
-    execute console command "kick @a &4[서버 교체]%nl%서버는 5분 내에 재부팅 됩니다."
+    execute console command "kick @a [서버 교체] 서버는 5분 내에 재부팅 됩니다."
     execute console command "stop"
+
+	
