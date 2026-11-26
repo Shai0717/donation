@@ -2,4 +2,4 @@
 powered by SSAPI
 
 
-<iframe src="https://github.com/sponsors/Shai0717/card" title="Sponsor Shai0717" height="225" width="600" style="border: 0;"></iframe>
+[![GitHub Sponsors](https://img.shields.io/github/sponsors/Shai0717?style=flat&logo=githubsponsors&color=ea4aaa)](https://github.com/sponsors/Shai0717)
